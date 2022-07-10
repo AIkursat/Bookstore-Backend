@@ -22,7 +22,6 @@ func (app *application) routes() http.Handler{
 
 
 	mux.Get("/users/login", app.Login)
-	
 	mux.Post("/users/login", app.Login)
     
 	return mux
