@@ -18,7 +18,7 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
-	var creds credentials
+	var creds credentials // It keeps a place for credentials
 	var payload jsonResponse
 
 	err := json.NewDecoder(r.Body).Decode(&creds)
