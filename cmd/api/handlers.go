@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -21,24 +20,14 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	var creds credentials // It keeps a place for credentials
 	var payload jsonResponse
 
-	err := json.NewDecoder(r.Body).Decode(&creds)
-	if err != nil {
-		// send back error message
-		app.errorLog.Println("invalid json")
+	err := app.readJSON(w, r, &creds) // third one is what we wanna decode the json into
+    if err != nil{
+		app.errorLog.Println(err)
 		payload.Error = true
-		payload.Message = "invalid json"
-
-		out, err := json.MarshalIndent(payload, "", "\t") // Make json easy to read to payload, no prefix "", tab
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(out)
-		return
-	}
-
+		payload.Message = "invalid json supplied, or json missing entirely"
+		_ = app.writeJSON(w, http.StatusBadRequest, payload)
+	}   
+ 
 	// TODO authenticate
 	app.infoLog.Println(creds.UserName, creds.Password)
 
@@ -46,13 +35,10 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	payload.Error = false
 	payload.Message = "Signed in"
 
-	out, err := json.MarshalIndent(payload, "", "\t")
+	// out, err := json.MarshalIndent(payload, "", "\t")
+	err = app.writeJSON(w, http.StatusOK, payload) // used instead of previos one
 	if err != nil {
-		app.errorLog.Println(err)
+		app.errorLog.Println(err) 
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(out)
 }
 
