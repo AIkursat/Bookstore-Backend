@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type DB struct{
@@ -31,18 +30,22 @@ func ConnectPostgres(dsn string) (*DB, error) { // dsn = data source name, it'll
 	d.SetMaxIdleConns(maxIdleDbConn)
 	d.SetConnMaxLifetime(maxDbLifeTime)
 
-	err = testDB(err, d)
+	err  = testDB(d)
+	if err != nil{
+		return nil, err
+	} 
 
 	dbConn.SQL = d
-	return dbConn, err
+	return dbConn, nil
 }  
 
-func testDB(err error, d *sql.DB) error{
-	err = d.Ping()
+func testDB(d *sql.DB) error{
+	err := d.Ping()
 	if err != nil{
 		fmt.Print("Error!", err)
-	} else{
+		return err
+	} 
 		fmt.Println("*** Pinged database succesfully ***")
+
+	return nil
 	}
-	return err
-}
