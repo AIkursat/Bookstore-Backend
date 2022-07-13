@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Bookstore-Backend/internal/data"
 	"Bookstore-Backend/internal/driver"
 	"fmt"
 	"log"
@@ -16,7 +17,7 @@ type application struct {
 	config  config // sharing configiration with application
 	infoLog *log.Logger // Logger
 	errorLog *log.Logger
-	db *driver.DB // From driver.go file
+	models data.Models
 }
 
 
@@ -41,7 +42,7 @@ func main() {
 		config: cfg,
 		infoLog: infoLog,
 		errorLog: errorLog,
-		db: db,
+		models: data.New(db.SQL),
 	}
 
 	err = app.serve()
