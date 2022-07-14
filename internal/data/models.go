@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const dbTimeout = time.Second * 3 // If db access takes longer than 3 seconds, cancel it
@@ -162,6 +164,40 @@ func (u *User) Delete() error{
 
 }
 
+
+func(u *User) Insert(user User) (int, error){ // because we return a id
+    ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12) // default is 10, but used 12 for hash.
+    if err != nil{
+		return 0, err
+	}
+
+	// If that pass that.
+
+	var newID int
+
+	stmt := `insert into users(email, first_name, last_name, password, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6) returning id		
+		`
+        
+		// we are using the all values for replacement
+		err = db.QueryRowContext(ctx, stmt,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+        hashedPassword,
+		time.Now(),
+		time.Now(),
+		).Scan(&newID)
+
+		if err != nil{
+			return 0, err
+		}
+		return newID, nil
+
+}
 
 type Token struct {
 	ID        int       `json:"id"`
