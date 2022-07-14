@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"go/token"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -220,7 +221,7 @@ func (u *User) ResetPassword(password string) error{
 
 func(u *User) PasswordMatches(plainText string) (bool, error) {
 	// Here we compare the password from the db and written password
-   err := bcrypt.CompareHashAndPassword([]byte(u.Password), [](plainText))
+   err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(plainText))
 
    if err != nil{
 	switch{
@@ -233,8 +234,6 @@ func(u *User) PasswordMatches(plainText string) (bool, error) {
     return true, nil
 }
 
-
-
 type Token struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -244,4 +243,62 @@ type Token struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Expiry    time.Time `json:"expiry"`
+}
+
+func(t *Token) GetByToken(plainText string) (*Token, error){ // we return actual token from db
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+   
+	query := `select id, user_id, email, token, token_hash, created_at, updated_at, expiry
+	from tokens where token = $1
+
+	`
+
+	var token Token // replace it with Token
+	row := db.QueryRowContext(ctx, query, plainText)
+	err := row.Scan(
+     &token.ID,
+	 &token.UserID,
+	 &token.Email,
+	 &token.Token,
+	 &token.TokenHash,
+	 &token.CreatedAt,
+	 &token.UpdatedAt,
+	 &token.Expiry,
+	)
+    
+	if err != nil{
+		return nil, err
+	}
+
+	return &token, nil
+
+}
+
+func(t *Token) GetUserForToken(token Token) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+   query := `select id, email, first_name, last_name, password, createad_at, updated_at from users where id = $1`
+
+
+
+	var user User
+	row := db.QueryRowContext(ctx, query, token.UserID)
+
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Password,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+     
+	if err != nil{
+		return nil, err
+	}
+    return &user, nil
+
 }
