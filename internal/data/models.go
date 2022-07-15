@@ -425,12 +425,12 @@ func (t *Token) ValidToken(plainText string) (bool, error) { // bool if token is
 		return false, errors.New("no matching token find")
 	 }
 
-	 // be sure user exist
+	 // checking the if user exist
 	 _, err = t.GetUserForToken(*token)
 	 if err != nil{
 		return false, errors.New("no matching user find")
 	 }
-
+     // checking the if token expiry 
 	 if token.Expiry.Before(time.Now()){
 		return false, errors.New("expired token")
 	 }

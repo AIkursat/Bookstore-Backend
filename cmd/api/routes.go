@@ -36,6 +36,33 @@ func (app *application) routes() http.Handler{
 		app.writeJSON(w, http.StatusOK, all)
 
 	})
+
+	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
+		var u = data.User{
+			Email: "you@there.com",
+			FirstName: "You",
+			LastName: "There",
+			Password: "password",
+		}
+		app.infoLog.Println("Adding user...")
+
+
+		id, err := app.models.User.Insert(u)
+		if err != nil{
+			app.errorLog.Println(err)
+			app.errorJSON(w, err, http.StatusForbidden)
+			return
+		}
+
+		// we will get the user
+
+		app.infoLog.Println("Got back id of", id)
+
+	    // we will get the user from db that's why we created newUser and ignored the error	
+
+		newUser, _ :=  app.models.User.GetOne(id)
+		app.writeJSON(w, http.StatusOK, newUser)
+	})
     
 	return mux
 }
