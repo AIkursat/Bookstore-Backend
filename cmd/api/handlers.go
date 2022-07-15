@@ -8,7 +8,7 @@ import (
 type jsonResponse struct {
 	Error   bool   `json:"error"`
 	Message string `json:"message"`
-	Data interface{} `json:data`
+	Data interface{} `json:"data"`
 }
 
 // Login is the handler used to attempt to log a user into the api

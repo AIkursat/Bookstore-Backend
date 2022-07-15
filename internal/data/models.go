@@ -102,6 +102,8 @@ func (u *User) GetByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
+// Returns one user by id
+
 func (u *User) GetOne(id int) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -382,7 +384,7 @@ func (t *Token) Insert(token Token, u User) error{
 
 	token.Email = u.Email
 
-	stmt = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry
+	stmt = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
 		values($1, $2, $3, $4, $5, $6, $7)`
 
         // we can't use := becauuse we already have err
