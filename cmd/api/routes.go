@@ -3,6 +3,7 @@ package main
 import (
 	"Bookstore-Backend/internal/data"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -62,6 +63,26 @@ func (app *application) routes() http.Handler{
 
 		newUser, _ :=  app.models.User.GetOne(id)
 		app.writeJSON(w, http.StatusOK, newUser)
+	})
+
+	mux.Get("/test-generate-token", func(w http.ResponseWriter, r *http.Request){
+		token, err := app.models.User.Token.GenerateToken(1, 60*time.Minute) // 1 hour
+		if err != nil{
+           app.errorLog.Println(err)
+		   return
+		}
+
+		token.Email = "admin@example.com"
+        token.CreatedAt = time.Now()
+		token.UpdatedAt = time.Now()
+
+		payload := jsonResponse{
+			Error: false,
+			Message: "Success",
+			Data: token,
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
 	})
     
 	return mux
