@@ -417,3 +417,24 @@ func (t *Token) DeleteByToken(plainText string) error{
 	}
 	return nil
 }
+
+func (t *Token) ValidToken(plainText string) (bool, error) { // bool if token is valid or not
+
+     token, err := t.GetByToken(plainText)
+	 if err != nil{
+		return false, errors.New("no matching token find")
+	 }
+
+	 // be sure user exist
+	 _, err = t.GetUserForToken(*token)
+	 if err != nil{
+		return false, errors.New("no matching user find")
+	 }
+
+	 if token.Expiry.Before(time.Now()){
+		return false, errors.New("expired token")
+	 }
+
+	 return true, nil
+
+}
