@@ -78,7 +78,7 @@ func (app *application) routes() http.Handler{
 
 		payload := jsonResponse{
 			Error: false,
-			Message: "Success",
+			Message: "success",
 			Data: token,
 		}
 
@@ -114,7 +114,7 @@ func (app *application) routes() http.Handler{
 
 		payload := jsonResponse{
 			Error: false,
-			Message: "Success",
+			Message: "success",
 			Data: token,
 		}
 
