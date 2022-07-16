@@ -285,7 +285,7 @@ func(t *Token) GetUserForToken(token Token) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
 
-   query := `select id, email, first_name, last_name, password, createad_at, updated_at from users where id = $1`
+	query := `select id, email, first_name, last_name, password, created_at, updated_at from users where id = $1`
 
 
 
@@ -419,6 +419,8 @@ func (t *Token) DeleteByToken(plainText string) error{
 	}
 	return nil
 }
+
+// That makes certain about a given token is valid
 
 func (t *Token) ValidToken(plainText string) (bool, error) { // bool if token is valid or not
 
