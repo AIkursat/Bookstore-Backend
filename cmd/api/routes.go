@@ -37,9 +37,9 @@ func (app *application) routes() http.Handler{
 		app.writeJSON(w, http.StatusOK, all)
 
 	})
-
+    // Both adding and getting
 	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
-		var u = data.User{
+		var u = data.User{ // this part will be added to the db
 			Email: "you@there.com",
 			FirstName: "You",
 			LastName: "There",
