@@ -34,7 +34,13 @@ func (app *application) routes() http.Handler{
 			return
 		}
 
-		app.writeJSON(w, http.StatusOK, all)
+		payload := jsonResponse{
+			Error: false,
+			Message: "succes",
+			Data: envelope{"users": all},
+		}
+
+		app.writeJSON(w, http.StatusOK, payload)
 
 	})
     // Both adding and getting
