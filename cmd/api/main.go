@@ -23,7 +23,7 @@ type application struct {
 
 func main() {
     var cfg config 
-	cfg.port = 8080 // will use 8080 port
+	cfg.port = 8081 // will use 8081 port
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
