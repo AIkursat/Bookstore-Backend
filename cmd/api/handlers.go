@@ -73,7 +73,7 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	payload = jsonResponse{
 		Error: false,
 		Message: "Logged in",
-		Data: envelope{"token": token},
+		Data: envelope{"token": token, "user": user 	},
 	}
 
 	// out, err := json.MarshalIndent(payload, "", "\t")
