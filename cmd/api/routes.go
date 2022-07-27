@@ -1,102 +1,75 @@
 package main
 
 import (
-	"Bookstore-Backend/internal/data"
 	"net/http"
 	"time"
+	"Bookstore-Backend/internal/data"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
 
-func (app *application) routes() http.Handler{
-    mux := chi.NewRouter()
+// routes generates our routes and attaches them to handlers, using the chi router
+// note that we return type http.Handler, and not *chi.Mux; since chi.Mux satisfies
+// the interface requirements for http.Handler, it makes sense to return the type
+// that is part of the standard library.
+func (app *application) routes() http.Handler {
+	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
 	mux.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://*", "http://*"}, // Audience can enter with both http and https methods.
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}, // Rest API methods will be accepted by service
-		AllowedHeaders: []string{"Accept", "Auuthorization", "Content-Type", "X-CSRF-Token"},
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders: []string{"Link"},
 		AllowCredentials: true,
-		MaxAge: 300, 
+		MaxAge: 300,
 	}))
 
-
-	
 	mux.Post("/users/login", app.Login)
 	mux.Post("/users/logout", app.Logout)
 
-	mux.Route("/admin", func(mux chi.Router) {
+    mux.Route("/admin", func(mux chi.Router){
 		mux.Use(app.AuthTokenMiddleware)
-
-		mux.Post("/foo", func (w http.ResponseWriter, r *http.Request){ // for testing
-          payload := jsonResponse{
-			Error: false,
-			Message: "bar",
-		  }
-
-		  app.writeJSON(w, http.StatusOK, payload)
-		})
+		mux.Post("/users/all", app.AllUsers)
 	})
 
-	mux.Get("/users/all", func(w http.ResponseWriter, r *http.Request){
-		var users data.User // We created the users
-		all, err := users.GetAll() // from models
-		if err != nil{
-			app.errorLog.Println(err)
-			return
-		}
-
-		payload := jsonResponse{
-			Error: false,
-			Message: "succes",
-			Data: envelope{"users": all},
-		}
-
-		app.writeJSON(w, http.StatusOK, payload)
-
-	})
-    // Both adding and getting
 	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
 		var u = data.User{ // this part will be added to the db
 			Email: "you@there.com",
 			FirstName: "You",
 			LastName: "There",
-			Password: "password",
+			Password: "password",	
 		}
+
 		app.infoLog.Println("Adding user...")
 
-
 		id, err := app.models.User.Insert(u)
-		if err != nil{
+		if err != nil {
 			app.errorLog.Println(err)
 			app.errorJSON(w, err, http.StatusForbidden)
 			return
 		}
 
-		// we will get the user
-
 		app.infoLog.Println("Got back id of", id)
-
-	    // we will get the user from db that's why we created newUser and ignored the error	
-
-		newUser, _ :=  app.models.User.GetOne(id)
+		
+		// we will get the user from db that's why we created newUser and ignored the error	
+		newUser, _ := app.models.User.GetOne(id)
 		app.writeJSON(w, http.StatusOK, newUser)
 	})
 
 	mux.Get("/test-generate-token", func(w http.ResponseWriter, r *http.Request){
-		token, err := app.models.User.Token.GenerateToken(1, 60*time.Minute) // 1 hour
-		if err != nil{
-           app.errorLog.Println(err)
-		   return
+		token, err := app.models.User.Token.GenerateToken(2, 60*time.Minute)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
 		}
 
 		token.Email = "admin@example.com"
-        token.CreatedAt = time.Now()
+		token.CreatedAt = time.Now()
 		token.UpdatedAt = time.Now()
 
-		payload := jsonResponse{
+		payload := jsonResponse {
 			Error: false,
 			Message: "success",
 			Data: token,
@@ -106,56 +79,51 @@ func (app *application) routes() http.Handler{
 	})
 
 	mux.Get("/test-save-token", func(w http.ResponseWriter, r *http.Request){
-		token, err := app.models.User.Token.GenerateToken(1, 60*time.Minute) // 1 hour
-		if err != nil{
-           app.errorLog.Println(err)
-		   return
-		}
-
-		user, err := app.models.User.GetOne(1) // 1 comes from the db
-        
-		if err != nil{
+		token, err := app.models.User.Token.GenerateToken(2, 60*time.Minute)
+		if err != nil {
 			app.errorLog.Println(err)
 			return
-		 }
- 
+		}
+
+		user, err := app.models.User.GetOne(2)
+		if err != nil {
+			app.errorLog.Println(err)
+			return
+		}
 
 		token.UserID = user.ID
-        token.CreatedAt = time.Now()
+		token.CreatedAt = time.Now()
 		token.UpdatedAt = time.Now()
 
 		err = token.Insert(*token, *user)
-
-		if err != nil{
+		if err != nil {
 			app.errorLog.Println(err)
 			return
-		 }
- 
+		}
 
-		payload := jsonResponse{
+		payload := jsonResponse {
 			Error: false,
 			Message: "success",
 			Data: token,
 		}
 
 		app.writeJSON(w, http.StatusOK, payload)
-	})
+	})	
 
 	mux.Get("/test-validate-token", func(w http.ResponseWriter, r *http.Request){
 		tokenToValidate := r.URL.Query().Get("token")
-
 		valid, err := app.models.Token.ValidToken(tokenToValidate)
-		if err != nil{
+		if err != nil {
 			app.errorJSON(w, err)
 			return
 		}
 
-		var payload jsonResponse 
+		var payload jsonResponse
 		payload.Error = false
 		payload.Data = valid
 
 		app.writeJSON(w, http.StatusOK, payload)
 	})
-    
+
 	return mux
 }
