@@ -31,9 +31,11 @@ func (app *application) routes() http.Handler {
 
     mux.Route("/admin", func(mux chi.Router){
 		mux.Use(app.AuthTokenMiddleware)
+		
 		mux.Post("/users", app.AllUsers)
 		mux.Post("/users/save", app.EditUser)
 		mux.Post("/users/get/{id}", app.Getuser)
+		mux.Post("/users/delete", app.DeleteUser)
 	})
 
 	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
