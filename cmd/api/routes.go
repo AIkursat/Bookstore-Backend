@@ -33,13 +33,14 @@ func (app *application) routes() http.Handler {
 		mux.Use(app.AuthTokenMiddleware)
 		mux.Post("/users", app.AllUsers)
 		mux.Post("/users/save", app.EditUser)
+		mux.Post("/users/get/{id}", app.Getuser)
 	})
 
 	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
 		var u = data.User{ // this part will be added to the db
 			Email: "you@there.com",
 			FirstName: "You",
-			LastName: "There",
+			LastName: "There",	
 			Password: "password",	
 		}
 

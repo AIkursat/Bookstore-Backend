@@ -4,7 +4,10 @@ import (
 	"Bookstore-Backend/internal/data"
 	"errors"
 	"net/http"
+	"strconv"
 	"time"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // jsonResponse is the type used for generic JSON responses
@@ -180,4 +183,20 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request){
 
 	_ = app.writeJSON(w, http.StatusAccepted, payload)
 
+}
+
+func (app *application) Getuser(w http.ResponseWriter, r *http.Request){
+	userId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	user, err := app.models.User.GetOne(userId)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	_ = app.writeJSON(w, http.StatusOK, user)
 }
