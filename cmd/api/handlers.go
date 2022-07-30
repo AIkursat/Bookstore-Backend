@@ -57,7 +57,14 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	// we have a valid user, let's generate a token
+	// we have a valid user, let's generate a toke
+
+	// If user active and valid, generate a token
+
+   if user.Active == 0 {
+	app.errorJSON(w, errors.New("user is not active"))
+	return
+   }
 
 	token, err := app.models.Token.GenerateToken(user.ID, 24 *time.Hour) // 24 hours expiry
 	if err != nil{
@@ -159,6 +166,7 @@ func (app *application) EditUser(w http.ResponseWriter, r *http.Request){
 		u.Email = user.Email
 		u.FirstName = user.FirstName
 		u.LastName = user.LastName
+		u.Active = user.Active
 
 		if err := u.Update();
 		 err != nil {
