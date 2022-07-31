@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-	"time"
-	"Bookstore-Backend/internal/data"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,6 +27,9 @@ func (app *application) routes() http.Handler {
 	mux.Post("/users/login", app.Login)
 	mux.Post("/users/logout", app.Logout)
 
+	mux.Post("/books", app.AllBooks)
+	mux.Get("/books", app.AllBooks)
+
 	mux.Post("/validate-token", app.ValidateToken)
 
     mux.Route("/admin", func(mux chi.Router){
@@ -41,7 +42,16 @@ func (app *application) routes() http.Handler {
 		mux.Post("/log-user-out/{id}", app.LogUserOutAndSetInactive)
 	})
 
-	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
+	// static files
+
+	fileServer := http.FileServer(http.Dir("./static/"))
+	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
+
+	return mux
+}
+	// testing for if they work or not
+
+/*	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
 		var u = data.User{ // this part will be added to the db
 			Email: "you@there.com",
 			FirstName: "You",
@@ -84,6 +94,7 @@ func (app *application) routes() http.Handler {
 
 		app.writeJSON(w, http.StatusOK, payload)
 	})
+
 
 	mux.Get("/test-save-token", func(w http.ResponseWriter, r *http.Request){
 		token, err := app.models.User.Token.GenerateToken(2, 60*time.Minute)
@@ -134,3 +145,4 @@ func (app *application) routes() http.Handler {
 
 	return mux
 }
+*/

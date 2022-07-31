@@ -24,12 +24,16 @@ func New(dbPool *sql.DB) Models {
 	return Models{
 		User:  User{},
 		Token: Token{},
+		Book: Book{},
+		Author: Author{},
 	}
 }
 
 type Models struct {
 	User  User
 	Token Token
+	Book Book
+	Author Author
 }
 
 type User struct {
