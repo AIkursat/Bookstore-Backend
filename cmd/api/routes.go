@@ -2,7 +2,8 @@ package main
 
 import (
 	"net/http"
-
+	"time"
+	"Bookstore-Backend/internal/data"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -29,6 +30,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Post("/books", app.AllBooks)
 	mux.Get("/books", app.AllBooks)
+	mux.Get("/books/{slug}", app.OneBook)
 
 	mux.Post("/validate-token", app.ValidateToken)
 
@@ -47,11 +49,11 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-	return mux
-}
+	
+
 	// testing for if they work or not
 
-/*	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
+	mux.Get("/users/add", func(w http.ResponseWriter, r *http.Request){
 		var u = data.User{ // this part will be added to the db
 			Email: "you@there.com",
 			FirstName: "You",
@@ -145,4 +147,3 @@ func (app *application) routes() http.Handler {
 
 	return mux
 }
-*/
