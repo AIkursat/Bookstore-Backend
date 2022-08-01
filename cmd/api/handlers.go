@@ -2,13 +2,19 @@ package main
 
 import (
 	"Bookstore-Backend/internal/data"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/mozillazg/go-slugify"
 )
+
+var staticPath = "./static/"
 
 // jsonResponse is the type used for generic JSON responses
 type jsonResponse struct {
@@ -324,7 +330,7 @@ func (app *application) OneBook(w http.ResponseWriter, r *http.Request) {
 	}
 	app.writeJSON(w, http.StatusOK, payload)
 } 
-func (app *application) AuhtorsAll(w http.ResponseWriter, r *http.Request) {
+func (app *application) AuthorsAll(w http.ResponseWriter, r *http.Request) {
 	all, err := app.models.Author.All()
 	if err != nil {
 		app.errorJSON(w, err)
@@ -353,4 +359,70 @@ func (app *application) AuhtorsAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.writeJSON(w, http.StatusOK, payload)
+}
+
+func (app *application) EditBook(w http.ResponseWriter, r *http.Request) {
+	var requestPaylaod struct{
+		ID int `json:"id"`
+		Title string `json:"title"`
+		AuthorID int `json:"author_id"`
+		PublicationYear int `json:"publication_year"`
+		Description string `json:"description"`
+		CoverBase64 string `json:"cover"`
+		GenreIDs []int `json:"genre_ids"`
+	}
+
+	err := app.readJSON(w, r, &requestPaylaod)
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	book := data.Book {
+		ID: requestPaylaod.ID,
+		Title: requestPaylaod.Title,
+		AuthorID: requestPaylaod.AuthorID,
+		PublicationYear: requestPaylaod.PublicationYear,
+		Description: requestPaylaod.Description,
+		Slug: slugify.Slugify(requestPaylaod.Title),
+		GenreIDs: requestPaylaod.GenreIDs,
+	}
+
+	if len(requestPaylaod.CoverBase64) > 0 {
+		// it means we have a cover
+
+		decoded, err := base64.StdEncoding.DecodeString(requestPaylaod.CoverBase64)
+		if err != nil {
+			app.errorJSON(w, err)
+			return
+		}
+		if err := os.WriteFile(fmt.Sprintf("%s/covers/%s.jpg", staticPath, book.Slug), decoded, 0666);
+		 err != nil{
+			app.errorJSON(w, err)
+			return	
+		}
+
+		if book.ID == 0 {
+			// adding a book
+			_, err := app.models.Book.Insert(book)
+			if err != nil {
+				app.errorJSON(w, err)
+				return
+			}
+		}else {
+			// update a book
+			err := book.Update()
+			if err != nil {
+				app.errorJSON(w, err)
+				return
+			}
+		}
+	}
+
+	payload := jsonResponse {
+		Error: false,
+		Message: "Changes saved",
+	}
+
+	app.writeJSON(w, http.StatusAccepted, payload)
 }
