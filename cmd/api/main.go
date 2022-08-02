@@ -18,6 +18,7 @@ type application struct {
 	infoLog *log.Logger // Logger
 	errorLog *log.Logger
 	models data.Models
+	environment string
 }
 
 
@@ -30,6 +31,7 @@ func main() {
    
 	// dsn means Data Source Name
 	dsn := "host=localhost port=5432 user=postgres password=0123321 dbname=bookkeeper sslmode=disable timezone=UTC connect_timeout=5"
+	environment := os.Getenv("ENV")
     db, err := driver.ConnectPostgres(dsn) 
 	if err != nil{
 		log.Fatal("cannot connect to database")
@@ -43,6 +45,7 @@ func main() {
 		infoLog: infoLog,
 		errorLog: errorLog,
 		models: data.New(db.SQL),
+		environment: environment,
 	}
 
 	err = app.serve()
