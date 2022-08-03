@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -62,4 +63,25 @@ func Test_writeJSON(t *testing.T) {
 	}
 	
 	testApp.environment = "development"
+}
+
+func Test_errorJSON(t *testing.T) {
+	rr := httptest.NewRecorder()
+	err := testApp.errorJSON(rr, errors.New("some error"))
+	if err != nil {
+		t.Error(err)
+	}
+
+	errSlice := []string{
+		"(SQLSTATE 23505)",
+		"(SQLSTATE 22001)",
+		"(SQLSTATE 23503)",
+	}
+
+	for _, x := range errSlice{
+		customErr := testApp.errorJSON(rr, errors.New(x), http.StatusUnauthorized)
+		if customErr != nil {
+			t.Error(customErr)
+		}
+	}
 }
